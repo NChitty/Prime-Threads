@@ -39,7 +39,7 @@ public class Main {
         }
         int noOfPrimes = primes.size();
         System.out.printf(
-                "%fs\t%s\t%s\n",
+                "%.3fs\t%s\t%s\n",
                 (end - start)/1000.0,
                 DecimalFormat.getInstance().format(noOfPrimes),
                 DecimalFormat.getInstance().format(sumOfPrimes)
