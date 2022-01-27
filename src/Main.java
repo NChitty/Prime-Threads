@@ -1,10 +1,11 @@
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class Main {
 
-    public static final long MAX_NUMBER = 1000000;
+    public static final long MAX_NUMBER = 100000000;
     public static final int NUMBER_OF_THREADS = 8;
 
     /**
@@ -12,79 +13,38 @@ public class Main {
      */
     public static List<Long> primes;
 
-    public static long sumOfPrimes;
+    public static long sumOfPrimes = 160;
 
-    public static volatile BitSet initialSieve = new BitSet((int) Math.sqrt(MAX_NUMBER));
-    public static volatile BitSet rangeSieve = new BitSet((int) Math.sqrt(MAX_NUMBER));
+    public static AtomicLong number = new AtomicLong(33);
 
     public static void main(String[] args) throws InterruptedException {
         primes = new ArrayList<>();
-
-        initialSieve.set(0);
-        initialSieve.set(1);
-        initialSieve.set(4);
-        initialSieve.set(6);
-        initialSieve.set(8);
-        initialSieve.set(9);
-        initialSieve.set(10);
-        initialSieve.set(12);
-        initialSieve.set(14);
-        initialSieve.set(15);
-        initialSieve.set(16);
-        initialSieve.set(18);
-        initialSieve.set(20);
-        initialSieve.set(21);
-        rangeSieve.set(0);
-        rangeSieve.set(1);
-        rangeSieve.set(4);
-        rangeSieve.set(6);
-        rangeSieve.set(8);
-        rangeSieve.set(9);
-        rangeSieve.set(10);
-        rangeSieve.set(12);
-        rangeSieve.set(14);
-        rangeSieve.set(15);
-        rangeSieve.set(16);
-        rangeSieve.set(18);
-        rangeSieve.set(20);
-        rangeSieve.set(21);
+        primes.add(2L);
+        primes.add(3L);
+        primes.add(5L);
+        primes.add(7L);
+        primes.add(11L);
+        primes.add(13L);
+        primes.add(17L);
+        primes.add(19L);
+        primes.add(23L);
+        primes.add(29L);
+        primes.add(31L);
 
         long start = System.currentTimeMillis();
-        long prime;
-        long startRange = 0;
-        long endRange = (long) Math.sqrt(MAX_NUMBER);
-        for(int i = 0; i < Math.sqrt(MAX_NUMBER); i++) {
-            int currentIndex = 0;
-            int rangeIndex = 0;
-            Thread[] threads = new Thread[NUMBER_OF_THREADS];
-            while(currentIndex < Math.sqrt(endRange)) {
-                for(int j = 0; j < NUMBER_OF_THREADS; j++) {
-                    currentIndex = initialSieve.nextClearBit(currentIndex+1);
-                    if(currentIndex > Math.sqrt(endRange)) break;
-                    threads[j] = new Thread(new SieveRunnable(currentIndex, startRange, endRange));
-                    threads[j].start();
-                }
-                for(int j = 0; j < NUMBER_OF_THREADS; j++) {
-                    if(threads[j] != null)
-                        threads[j].join();
-                }
-            }
-            while(rangeIndex < endRange-startRange) {
-                rangeIndex = rangeSieve.nextClearBit(rangeIndex);
-                prime = rangeSieve.nextClearBit(rangeIndex) + startRange;
-                if(prime < endRange) {
-                    primes.add(prime);
-                    sumOfPrimes += prime;
-                } else
-                    break;
-                rangeIndex++;
-            }
-            rangeSieve.clear();
-            startRange = endRange;
-            endRange += Math.sqrt(MAX_NUMBER);
+        WheelThread[] pthreads = new WheelThread[NUMBER_OF_THREADS];
+        for(int i = 0; i < NUMBER_OF_THREADS; i++) {
+            pthreads[i] = new WheelThread();
+            pthreads[i].start();
+        }
+        for (WheelThread p : pthreads) {
+            p.join();
         }
         long end = System.currentTimeMillis();
-
+        for (WheelThread p : pthreads) {
+            primes.addAll(p.getPrimes());
+            sumOfPrimes += p.getSumOfPrimes();
+        }
         int noOfPrimes = primes.size();
         System.out.printf(
                 "%dms\t%s\t%s\n",
@@ -99,29 +59,90 @@ public class Main {
         }
     }
 
-    static class SieveRunnable implements Runnable {
+    static class WheelThread extends Thread {
 
-        private long base;
-        private long start;
-        private long end;
+        private List<Long> primes;
+        private long sumOfPrimes;
 
-        public SieveRunnable(int currentIndex, long rangeStart, long rangeEnd) {
-            this.base = currentIndex;
-            this.start = rangeStart;
-            this.end = rangeEnd;
+        public WheelThread() {
+            primes = new ArrayList<>();
         }
 
         @Override
         public void run() {
-            // Gives the lowest multiple of base in the range
-            long multiple = this.start == 0 ? this.base + this.base :
-                    (this.start % this.base) == 0 ? this.start : (this.start - (this.start%this.base) + this.base);
-            while(multiple <= end) {
-                if(this.start == 0)
-                    initialSieve.set((int) multiple, true);
-                rangeSieve.set((int) (multiple - start), true);
-                multiple += this.base;
+            long number = Main.number.getAndIncrement();
+            while(number <= MAX_NUMBER) {
+                if(this.isPrime(number)) {
+                    sumOfPrimes += number;
+                    primes.add(number);
+                }
+                number = Main.number.getAndIncrement();
             }
+        }
+
+        private boolean isPrime(long N) {
+            boolean isPrime = true;
+
+            // The Wheel for checking
+            // prime number
+            int []arr = { 7, 11, 13, 17,19, 23, 29, 31 };
+
+            // Base Case
+            if (N < 2) {
+                isPrime = false;
+            }
+
+            // Check for the number taken
+            // as basis
+            if (N % 2 == 0 || N % 3 == 0
+                    || N % 5 == 0) {
+                isPrime = false;
+            }
+
+            // Check for Wheel
+            // Here i, acts as the layer
+            // of the wheel
+            for (int i = 0; i < Math.sqrt(N); i += 30) {
+
+                // Check for the list of
+                // Sieve in arr[]
+                for (int c : arr) {
+
+                    // If number is greater
+                    // than sqrt(N) break
+                    if ((c+i) > Math.sqrt(N)) {
+                        break;
+                    }
+
+                    // Check if N is a multiple
+                    // of prime number in the
+                    // wheel
+                    else {
+                        if (N % (c + i) == 0) {
+                            isPrime = false;
+                            break;
+                        }
+                    }
+
+                    // If at any iteration
+                    // isPrime is false,
+                    // break from the loop
+                    if (!isPrime)
+                        break;
+                }
+                if(!isPrime)
+                    break;
+            }
+
+            return isPrime;
+        }
+
+        public List<Long> getPrimes() {
+            return primes;
+        }
+
+        public long getSumOfPrimes() {
+            return sumOfPrimes;
         }
     }
 
