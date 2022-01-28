@@ -60,7 +60,7 @@ My last shot was to implement a wheel sieve which is an optimization of the siev
 7, 11, 13, 17, 19, 23, 29, and 31, this forms the wheel. No prime is a multiple of the basis so the the algorithm checks these first. At which point the candidate is checked against the wheel and additions of 30.
 This is because all additions of 30 to this wheel are prime as well, drastically cutting down the number of comparisons that need to be made. The explanation is best understood by looking at the picture below.
 
-![Wheel sieve](Wheel Factorization.png)
+![Wheel sieve](../blob/main/Wheel Factorization.png)
 
 While the code for this method was readily available I made several optimization based on my understanding of primes. First, the available algorithm checked if the current number on the wheel was less than the square root of the
 candidate number. I changed the algorithm to check if the current number and its layer on the wheel was less than the square root to exit early, saving time. I also added an exit from the outer loop because once a number is found to be
@@ -75,13 +75,14 @@ collections that can insert faster such as a LinkedList.
 
 ## Compiling and Running
 
-Ensure that the Java Development Kit (found (here)[https://www.oracle.com/java/technologies/downloads]) and Java Runtime Environment (and (here)[https://www.java.com/en/download/manual.jsp]) are installed.
+Ensure that the Java Development Kit (found [here](https://www.oracle.com/java/technologies/downloads)) and Java Runtime Environment (and [here](https://www.java.com/en/download/manual.jsp)) are installed.
 After, download the file Main.java and manifest.txt. Run the following commands sequentially in a command-line interface in the directory Main.java is in:
-```javac -d "Main.java"
+```
+javac -d "Main.java"
 jar -cvfm Primes.jar manifest.txt *.class
 ```
 The project is now built. The produced jar-file can now be moved anywhere and ran with `java -jar Primes.jar`.
 
-[^1]:(Generation of primes)[https://en.wikipedia.org/wiki/Generation_of_primes]
-[^2]:(Sieve of Eratosthenes)[https://en.wikipedia.org/wiki/Sieve_of_Eratosthenes]
-[^3]:(Wheel Factorization Method)[https://www.geeksforgeeks.org/wheel-factorization-algorithm/#:~:text=Wheel%20Factorization%20is%20the%20improvement,all%20numbers%20of%20the%20basis.]
+[^1]:[Generation of primes](https://en.wikipedia.org/wiki/Generation_of_primes)
+[^2]:[Sieve of Eratosthenes](https://en.wikipedia.org/wiki/Sieve_of_Eratosthenes)
+[^3]:[Wheel Factorization Method](https://www.geeksforgeeks.org/wheel-factorization-algorithm/#:~:text=Wheel%20Factorization%20is%20the%20improvement,all%20numbers%20of%20the%20basis.)
