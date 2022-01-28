@@ -1,11 +1,11 @@
-#Parallel Wheel Sieve
+# Parallel Wheel Sieve
 
-##Introduction
+## Introduction
 
 The problem was given to find all the prime numbers between 1 and 10<sup>8</sup> using 8 threads. The first thought is how can one test the primality of a number.
 Two methods are of note, trial division and sieves.
 
-##Properties of Prime Numbers
+## Properties of Prime Numbers
 
 To understand the thought process behind different algorithms, some properties of primes are necessary to understand. The definition of a prime number is loose but
 the one I chose for this project is that a prime number is indivisible by all prime numbers before it. Consequently, 0 and 1 are not prime and the first prime number is 2.
@@ -13,7 +13,7 @@ Another way to think of this definition is that a prime number is not a multiple
 point to make that is important for optimizing algorithms is that each for each pair of numbers in a factorization, one lies below the square root of the number and the other lies
 above the square root.
 
-##Trial Division
+## Trial Division
 
 This seemed to be the easiest algorithm to implement while also the least efficient. I started by allowing each thread to just do trial division on all numbers greater than
 or equal to 2 up to the square root of the candidate number, this executed in about 15 seconds. To keep track of the candidate number, each thread would `getAndIncrement` from an AtomicLong
